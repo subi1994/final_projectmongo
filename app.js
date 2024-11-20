@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
+import { title } from "process";
 
 dotenv.config();
 
@@ -29,6 +30,10 @@ mongoose
 
 // MongoDB schema for storing employee data with image as a Buffer (BLOB)
 const employeeSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+  },
   image: {
     type: Buffer, // Store the image as a binary BLOB (Buffer)
     required: true,
@@ -53,10 +58,7 @@ const employeeSchema = new mongoose.Schema({
     type: String, // Store the image MIME type, e.g., 'image/png'
     required: true,
   },
-  uploadedAt: {
-    type: Date,
-    default: Date.now, // Automatically set to current date when the employee record is created
-  },
+ 
 });
 
 const Employee = mongoose.model("Employee", employeeSchema);
@@ -71,9 +73,9 @@ app.post("/api/employees", upload.single("image"), async (req, res) => {
     return res.status(400).json({ message: "Image file is required." });
   }
 
-  const { name, designation, dob, address } = req.body;
+  const { title, name, designation, dob, address } = req.body;
 
-  if (!name || !designation || !dob || !address) {
+  if (!title || !name || !designation || !dob || !address) {
     return res.status(400).json({ message: "All fields are required." });
   }
 
@@ -86,6 +88,7 @@ app.post("/api/employees", upload.single("image"), async (req, res) => {
   // Create a new employee with image data stored as Buffer (BLOB)
   const newEmployee = new Employee({
     image: req.file.buffer, // Store the image as a Buffer (BLOB)
+    title,
     name,
     designation,
     dob: parsedDob, // Store dob as Date
